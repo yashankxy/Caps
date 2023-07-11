@@ -1,6 +1,56 @@
+
+
+
+ function registerPet() {
+  var petName = $('#petName').val();
+  var petAge = $('#petAge').val();
+  var petBreed = $('#petBreed').val();
+  var petLocation = $('#petLocation').val();
+  var petPhotoInput = $('#petPhoto')[0]; // Get the file input element
+  var petPhoto = petPhotoInput.files[0]; // Get the selected file
+
+  // Create a new FormData object
+  var formData = new FormData();
+  formData.append('name', petName);
+  formData.append('age', petAge);
+  formData.append('breed', petBreed);
+  formData.append('location', petLocation);
+  formData.append('photo', petPhoto);
+
+  // Perform your registration logic here using the entered pet details and uploaded photo
+
+  // Close the dialog
+  $('#registerPetDialog').modal('hide');
+}
+
+function donateEther () {
+  var donationAmount = $('#donationAmount').val();
+
+  // Convert the donation amount to Wei
+  var donationAmountWei = web3.toWei(donationAmount, 'ether');
+
+  // Call the donate function in your smart contract, passing the donation amount in Wei
+  App.contracts.Adoption.deployed().then(function(instance) {
+    return instance.donate({ value: donationAmountWei });
+  }).then(function(result) {
+    // Donation successful
+    console.log('Donation successful:', result);
+    // Close the dialog
+    $('#donateEtherDialog').modal('hide');
+  }).catch(function(error) {
+    // Error occurred during donation
+    console.error('Error occurred during donation:', error);
+    // Close the dialog
+    $('#donateEtherDialog').modal('hide');
+  });
+}
+
+
 App = {
   web3Provider: null,
   contracts: {},
+
+ 
 
   init: async function() {
     // Load pets.
@@ -67,6 +117,36 @@ web3 = new Web3(App.web3Provider);
 
   bindEvents: function() {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
+
+    $('#registerPetButton').on('click', function() {
+      // Clear the input fields of the registration form
+      $('#petName').val('');
+      $('#petAge').val('');
+      $('#petBreed').val('');
+      $('#petLocation').val('');
+      $('#petPhoto').val('');
+      // Open the registration dialog
+      $('#registerPetDialog').modal('show');
+    });
+
+    $('#registerPetSubmitButton').on('click', function() {
+      // Call the registerPet function
+      App.registerPet();
+    });
+    
+    $('#donateEtherButton').on('click', function() {
+      // Clear the input field of the donation form
+      $('#donationAmount').val('');
+      // Open the donation dialog
+      $('#donateEtherDialog').modal('show');
+    });
+
+    $('#donateEtherSubmitButton').on('click', function() {
+      // Call the donateEther function
+      App.donateEther();
+    });
+    
+
   },
 
   markAdopted: function(adopters, account) {
