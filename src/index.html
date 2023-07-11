@@ -28,6 +28,7 @@
         <br />
         <!-- Button to open the register pet dialog -->
         <button id="registerPetButton" class="btn btn-primary">Register Pet</button>
+        <button id="donateEtherButton" class="btn btn-primary">Donate</button>
       </div>
     </div>
 
@@ -75,7 +76,8 @@
         </div>
       </div>
     </div>
-  </div>
+  
+</div>
 
   <!--Donate -->
   <div id="donateEtherDialog" class="modal fade" role="dialog">
@@ -106,6 +108,7 @@
 
 
   <div id="petTemplate" style="display: none;">
+    <div class="panel-body">
     <div class="col-sm-6 col-md-4 col-lg-3">
       <div class="panel panel-default panel-pet">
         <div class="panel-heading">
@@ -118,10 +121,13 @@
           <strong>Age</strong>: <span class="pet-age">3</span><br />
           <strong>Location </strong>: <span class="pet-location">Warren, MI</span><br /><br />
           <button class="btn btn-default btn-adopt" type="button" data-id="0">Adopt</button>
+          <button class="btn btn-danger btn-delete" type="button" data-id="{{id}}">Delete</button>
         </div>
       </div>
     </div>
   </div>
+</div>
+  
 
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>

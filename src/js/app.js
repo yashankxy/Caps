@@ -16,12 +16,36 @@
   formData.append('breed', petBreed);
   formData.append('location', petLocation);
   formData.append('photo', petPhoto);
+  
+  var newPet = {
+    name: petName,
+    age: petAge,
+    breed: petBreed,
+    location: petLocation,
+    photo: petPhoto
+  };
+  App.registeredPets.push(newPet);
 
-  // Perform your registration logic here using the entered pet details and uploaded photo
+  // Update the UI to display the newly registered pet
+  var petsRow = $('#petsRow');
+  var petTemplate = $('#petTemplate').html();
+  petTemplate = petTemplate.replace('{{name}}', newPet.name);
+  petTemplate = petTemplate.replace('{{picture}}', newPet.photo);
+  petTemplate = petTemplate.replace('{{breed}}', newPet.breed);
+  petTemplate = petTemplate.replace('{{age}}', newPet.age);
+  petTemplate = petTemplate.replace('{{location}}', newPet.location);
+  petsRow.append(petTemplate);
 
   // Close the dialog
   $('#registerPetDialog').modal('hide');
 }
+  // Perform your registration logic here using the entered pet details and uploaded photo
+
+  // Close the dialog
+  $('#registerPetDialog').modal('hide');
+
+  
+  
 
 function donateEther () {
   var donationAmount = $('#donationAmount').val();
@@ -49,7 +73,7 @@ function donateEther () {
 App = {
   web3Provider: null,
   contracts: {},
-
+  registeredPets: [],
  
 
   init: async function() {
@@ -69,10 +93,13 @@ App = {
         petsRow.append(petTemplate.html());
       }
     });
+    $(document).on('click', '.btn-delete', App.deletePet);
 
     return await App.initWeb3();
   },
 
+
+  
   initWeb3: async function() {
 
     // Modern dapp browsers...
