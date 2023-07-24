@@ -1,51 +1,5 @@
 
-
-
- function registerPet() {
-  var petName = $('#petName').val();
-  var petAge = $('#petAge').val();
-  var petBreed = $('#petBreed').val();
-  var petLocation = $('#petLocation').val();
-  var petPhotoInput = $('#petPhoto')[0]; // Get the file input element
-  var petPhoto = petPhotoInput.files[0]; // Get the selected file
-
-  // Create a new FormData object
-  var formData = new FormData();
-  formData.append('name', petName);
-  formData.append('age', petAge);
-  formData.append('breed', petBreed);
-  formData.append('location', petLocation);
-  formData.append('photo', petPhoto);
-  
-  var newPet = {
-    name: petName,
-    age: petAge,
-    breed: petBreed,
-    location: petLocation,
-    photo: petPhoto
-  };
-  App.registeredPets.push(newPet);
-
-  // Update the UI to display the newly registered pet
-  var petsRow = $('#petsRow');
-  var petTemplate = $('#petTemplate').html();
-  petTemplate = petTemplate.replace('{{name}}', newPet.name);
-  petTemplate = petTemplate.replace('{{picture}}', newPet.photo);
-  petTemplate = petTemplate.replace('{{breed}}', newPet.breed);
-  petTemplate = petTemplate.replace('{{age}}', newPet.age);
-  petTemplate = petTemplate.replace('{{location}}', newPet.location);
-  petsRow.append(petTemplate);
-
-  // Close the dialog
-  $('#registerPetDialog').modal('hide');
-}
-  // Perform your registration logic here using the entered pet details and uploaded photo
-
-  // Close the dialog
-  $('#registerPetDialog').modal('hide');
-
-  
-  
+ 
 
 function donateEther () {
   var donationAmount = $('#donationAmount').val();
@@ -76,6 +30,7 @@ App = {
   registeredPets: [],
  
 
+  
   init: async function() {
     // Load pets.
     $.getJSON('../pets.json', function(data) {
@@ -144,7 +99,7 @@ web3 = new Web3(App.web3Provider);
 
   bindEvents: function() {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
-
+    $(document).on('click', '.btn-vote', App.handleVote);
     $('#registerPetButton').on('click', function() {
       // Clear the input fields of the registration form
       $('#petName').val('');
@@ -176,22 +131,147 @@ web3 = new Web3(App.web3Provider);
 
   },
 
+
+  registerPet: function() {
+    var petName = $('#petName').val();
+    var petAge = $('#petAge').val();
+    var petBreed = $('#petBreed').val();
+    var petLocation = $('#petLocation').val();
+    var petPhotoInput = $('#petPhoto')[0]; // Get the file input element
+    var petPhoto = petPhotoInput.files[0]; // Get the selected file
+  
+    // Create a new FormData object
+    var formData = new FormData();
+    formData.append('name', petName);
+    formData.append('age', petAge);
+    formData.append('breed', petBreed);
+    formData.append('location', petLocation);
+    formData.append('photo', petPhoto);
+    
+    $.ajax({
+      type: 'POST',
+      url: '../images/' + petPhoto.name,
+      data: petPhoto,
+      processData: false,
+      contentType: false,
+      success: function() {
+        console.log('Pet photo uploaded successfully');
+      },
+      error: function(error) {
+        console.error('Error occurred while uploading pet photo:', error);
+      }
+    });
+  
+    var newPet = {
+      name: petName,
+      age: petAge,
+      breed: petBreed,
+      location: petLocation,
+      photo: petPhoto,
+      voteCount: 0
+    };
+  
+    App.registeredPets.push(newPet);
+  
+    // Update the UI to display the newly registered pet
+    var petsRow = $('#petsRow');
+    var petTemplate = $('#petTemplate').html();
+    petTemplate = petTemplate.replace('{{name}}', newPet.name);
+    petTemplate = petTemplate.replace('{{picture}}', newPet.photo);
+    petTemplate = petTemplate.replace('{{breed}}', newPet.breed);
+    petTemplate = petTemplate.replace('{{age}}', newPet.age);
+    petTemplate = petTemplate.replace('{{location}}', newPet.location);
+    petsRow.append(petTemplate);
+  
+    // Close the dialog
+    $('#registerPetDialog').modal('hide');
+    var newPetData = {
+      id: App.registeredPets.length,
+      name: petName,
+      picture: 'images/' + petPhoto.name,
+      age: petAge,
+      breed: petBreed,
+      location: petLocation
+    };
+  
+    
+    App.registeredPets.push(newPetData);
+  
+    // Save the updated pets array to pets.json
+    $.ajax({
+      type: 'POST',
+      url: '../pets.json',
+      data: JSON.stringify(App.registeredPets),
+      contentType: 'application/json',
+      success: function() {
+        // Show the "Successfully registered" dialog box
+        $('#registerSuccessDialog').modal('show');
+      },
+      error: function(error) {
+        console.error('Error occurred while saving pet data:', error);
+      }
+    });
+    
+  
+    $('#registerPetDialog').modal('hide');
+    App.registerPet();
+  },
+    // Perform your registration logic here using the entered pet details and uploaded photo
+  
+    // Close the dialog
+
   markAdopted: function(adopters, account) {
     var adoptionInstance;
-
+  
     App.contracts.Adoption.deployed().then(function(instance) {
       adoptionInstance = instance;
-    
+  
       return adoptionInstance.getAdopters.call();
     }).then(function(adopters) {
       for (i = 0; i < adopters.length; i++) {
         if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
           $('.panel-pet').eq(i).find('button').text('Success').attr('disabled', true);
         }
+  
+        // Get the vote count for each pet and update the UI
+        adoptionInstance.getVoteCount.call(i).then(function(voteCount) {
+          $('.panel-pet').eq(i).find('.vote-count').text('Votes: ' + voteCount);
+        }).catch(function(error) {
+          console.error('Error occurred while getting vote count:', error);
+        });
       }
     }).catch(function(err) {
       console.log(err.message);
     });
+  },
+  
+
+  handleVote: function(event) {
+    event.preventDefault();
+  
+    var petId = parseInt($(event.target).data('id'));
+  
+    App.contracts.Adoption.deployed().then(function(instance) {
+      return instance.vote(petId);
+    }).then(function() {
+      // Get the updated vote count for the pet and update the UI
+      return adoptionInstance.getVoteCount.call(petId);
+    }).then(function(voteCount) {
+      $(event.target).siblings('.vote-count').text('Votes: ' + voteCount);
+    }).catch(function(error) {
+      console.error('Error occurred while voting:', error);
+    });
+
+    // Get the current timestamp
+    var voteTime = new Date().toLocaleString();
+  
+    // Update the UI to display the vote time
+    $(event.target).siblings('.vote-time').text('Voted on: ' + voteTime);
+  
+    // You can perform additional logic here such as updating the voting count in a smart contract or storing the vote data
+  
+    // You may want to consider disabling the vote button after it is clicked
+    $(event.target).prop('disabled', true);
   },
 
   handleAdopt: function(event) {
@@ -222,6 +302,8 @@ web3 = new Web3(App.web3Provider);
   }
 
 };
+
+
 
 $(function() {
   $(window).load(function() {

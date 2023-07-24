@@ -20,15 +20,63 @@
 </head>
 
 <body>
+
+  
   <div class="container">
     <div class="row">
       <div class="col-xs-12 col-sm-8 col-sm-push-2">
         <h1 class="text-center">Pete's Pet Shop</h1>
         <hr />
         <br />
-        <!-- Button to open the register pet dialog -->
+        <!-- Button to open the register pet dialog --> 
+        <label for="petsDropdown Breed">Filter:Breed</label>
+        <select id="Breed">
+          <option value="All">All</option>
+          <option value="Scottish Terrier">Scottish Terrier</option>
+          <option value="Boxer">Boxer</option>
+          <option value="French Bulldog">French Bulldog</option>
+          <option value="Rag doll">Rag doll</option>
+          <option value="Golden Retriever">Golden Retriever</option>
+          <!-- Add more options as needed -->
+        </select>
+        <label for="petsDropdown Location">Location</label>
+        <select id="age">
+          <option value="All">All</option>
+          <option value="Dawn, Wisconsin">Dawn, Wisconsin</option>
+          <option value="Broadlands, Oregon">Broadlands, Oregon</option>
+          <option value="Sultana, Massachusett">Sultana, Massachusett</option>
+          <option value="Kingstowne, Nevada">Kingstowne, Nevada</option>
+          <option value="Windsor, Montana">Windsor, Montana</option>
+          <option value="Tyhee, Indiana">Tyhee, Indiana</option>
+          <option value="Matheny, Utah">Matheny, Utah</option>
+          <option value="Honolulu, Hawaii">Honolulu, Hawaii</option>
+          <option value="Jacksonwald, Palau">Jacksonwald, Palau</option>
+          <option value="Soudan, Louisiana">Soudan, Louisiana</option>
+          <option value="Innsbrook, Illinois">Innsbrook, Illinois</option>
+          <option value="Gerber, South Dakota">Gerber, South Dakota</option>
+          <option value="Camas, Pennsylvania">Camas, Pennsylvania</option>
+          <option value="Lisco, Alabama">Lisco, Alabama</option>
+          <option value="Tooleville, West Virginia">Tooleville, West Virginia</option>
+          <option value="Freeburn, Idaho">Freeburn, Idaho</option>
+          <!-- Add more options as needed -->
+        </select>
+
+        <label for="petsDropdown Age">Age</label>
+        <select id="age">
+          <option value="All">All</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5+">5+</option>
+          <!-- Add more options as needed -->
+        </select>
+        
         <button id="registerPetButton" class="btn btn-primary">Register Pet</button>
         <button id="donateEtherButton" class="btn btn-primary">Donate</button>
+        
+       
+
       </div>
     </div>
 
@@ -36,6 +84,7 @@
       <!-- PETS LOAD HERE -->
     </div>
 
+   
     <!-- Register Pet Dialog -->
     <div id="registerPetDialog" class="modal fade" role="dialog">
       <div class="modal-dialog">
@@ -79,6 +128,27 @@
   
 </div>
 
+<!-- Register Success Dialog -->
+<div id="registerSuccessDialog" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Successfully registered</h4>
+      </div>
+      <div class="modal-body">
+        <p>Your pet has been successfully registered.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
   <!--Donate -->
   <div id="donateEtherDialog" class="modal fade" role="dialog">
     <div class="modal-dialog">
@@ -104,7 +174,8 @@
     </div>
   </div>
 
-  
+
+
 
 
   <div id="petTemplate" style="display: none;">
@@ -122,6 +193,11 @@
           <strong>Location </strong>: <span class="pet-location">Warren, MI</span><br /><br />
           <button class="btn btn-default btn-adopt" type="button" data-id="0">Adopt</button>
           <button class="btn btn-danger btn-delete" type="button" data-id="{{id}}">Delete</button>
+          <br /><br />
+          <button class="btn btn-success btn-vote" type="button" data-id="{{id}}">Vote</button>
+          <span class="vote-time"></span>
+          <br />
+          <span class="vote-count">Votes: 0</span>
         </div>
       </div>
     </div>
