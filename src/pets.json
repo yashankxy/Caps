@@ -126,5 +126,14 @@
     "age": 2,
     "breed": "Golden Retriever",
     "location": "Dawn, Wisconsin"
+  },
+  {
+    "id": 16,
+    "name": "Zhuge Dan",
+    "picture": "images/Ragdoll.jpeg",
+    "age": 56,
+    "breed": "Golden Retriever",
+    "location": "Dawn, Wisconsin"
   }
 ]
+
