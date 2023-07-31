@@ -1,14 +1,28 @@
-
+function ShowedPet(id, petName, picture, age, breedName, location) {
+  var petsRow = $('#petsRow');
+  var petTemplate = $('#petTemplate');
+  console.log('show pet');
+  petTemplate.find('.panel-title').text(petName);
+  petTemplate.find('img').attr('src', picture);
+  petTemplate.find('.pet-breed').text(breedName);
+  petTemplate.find('.pet-age').text(age);
+  petTemplate.find('.pet-location').text(location);
+  petTemplate.find('.btn-adopt').attr('data-id', id);
+  petTemplate.find('.btn-vote').attr('data-id', id);
+  petsRow.append(petTemplate.html());
+}
  
 
 function donateEther () {
+  console.log('donateEther function called');
   var donationAmount = $('#donationAmount').val();
 
   // Convert the donation amount to Wei
   var donationAmountWei = web3.toWei(donationAmount, 'ether');
-
+  console.log('Donation Amount:', donationAmount); 
   // Call the donate function in your smart contract, passing the donation amount in Wei
   App.contracts.Adoption.deployed().then(function(instance) {
+    console.log('Calling instance.donate with donationAmountWei:', donationAmountWei);
     return instance.donate({ value: donationAmountWei });
   }).then(function(result) {
     // Donation successful
@@ -24,16 +38,68 @@ function donateEther () {
 }
 
 
+function adopt(petId) {
+  var petInstance;
+
+  App.contracts.Adoption.deployed().then(function(instance) {
+    petInstance = instance;
+
+    return petInstance.adopt(petId, { from: App.account });
+  }).then(function(result) {
+    // Pet adoption successful
+    // Update the adoptionHistory for the user
+    if (App.adoptionHistory[App.account]) {
+      App.adoptionHistory[App.account].push(petId);
+    } else {
+      App.adoptionHistory[App.account] = [petId];
+    }
+
+    // Update the UI or do any other necessary tasks
+  }).catch(function(error) {
+    // Error occurred during pet adoption
+    console.error('Error occurred during pet adoption:', error);
+  });
+}
+
+function getUserAdoptionHistory(userAddress) {
+  return App.adoptionHistory[userAddress] || [];
+}
+
+function populateAdoptionHistoryBox() {
+  var userAddress = App.account; // Replace this with the currently logged-in user's address/identifier
+
+  // Get the user's adoption history from the App.adoptionHistory object
+  var adoptionHistory = App.adoptionHistory[userAddress] || [];
+
+  // Clear any previous content in the adoption list
+  $('#adoptionList').empty();
+
+  // Populate the adoption list with the user's adoption history
+  adoptionHistory.forEach(function(petId) {
+    // You can customize how the adoption history is displayed (e.g., pet name, picture, etc.)
+    var petInfo = App.registeredPets.find(function(pet) {
+      return pet.id === petId;
+    });
+
+    if (petInfo) {
+      var listItem = $('<li>').text(petInfo.name);
+      $('#adoptionList').append(listItem);
+    }
+  });
+}
+
 App = {
   web3Provider: null,
   contracts: {},
   registeredPets: [],
- 
+  adoptionHistory: {},
 
   
   init: async function() {
+    console.log('Initializing App...');
     // Load pets.
     $.getJSON('../pets.json', function(data) {
+      console.log('Received pets data:', data);
       var petsRow = $('#petsRow');
       var petTemplate = $('#petTemplate');
 
@@ -53,6 +119,96 @@ App = {
     return await App.initWeb3();
   },
 
+  registerPet: function() {
+    console.log('Registering a new pet...');
+
+    var petName = $('#petName').val();
+    var petAge = $('#petAge').val();
+    var petBreed = $('#petBreed').val();
+    var petLocation = $('#petLocation').val();
+    var petPhotoInput = $('#petPhoto')[0]; // Get the file input element
+    var petPhoto = petPhotoInput.files[0]; // Get the selected file
+  
+    // Create a new FormData object
+    var formData = new FormData();
+    formData.append('name', petName);
+    formData.append('age', petAge);
+    formData.append('breed', petBreed);
+    formData.append('location', petLocation);
+    formData.append('photo', petPhoto);
+    
+    $.ajax({
+      type: 'POST',
+      url: '../images/' + petPhoto.name,
+      data: petPhoto,
+      processData: false,
+      contentType: false,
+      success: function() {
+        console.log('Pet photo uploaded successfully');
+      },
+      error: function(error) {
+        console.error('Error occurred while uploading pet photo:', error);
+      }
+    });
+  
+
+    var newPet = {
+      name: petName,
+      age: petAge,
+      breed: petBreed,
+      location: petLocation,
+      photo: petPhoto,
+      voteCount: 0
+    };
+  
+    App.registeredPets.push(newPet);
+  
+    // Update the UI to display the newly registered pet
+    var petsRow = $('#petsRow');
+    var petTemplate = $('#petTemplate').html();
+    petTemplate = petTemplate.replace('{{name}}', newPet.name);
+    petTemplate = petTemplate.replace('{{picture}}', newPet.photo);
+    petTemplate = petTemplate.replace('{{breed}}', newPet.breed);
+    petTemplate = petTemplate.replace('{{age}}', newPet.age);
+    petTemplate = petTemplate.replace('{{location}}', newPet.location);
+    petsRow.append(petTemplate);
+  
+    // Close the dialog
+    $('#registerPetDialog').modal('hide');
+    var newPetData = {
+      id: App.registeredPets.length,
+      name: petName,
+      picture: 'images/' + petPhoto.name,
+      age: petAge,
+      breed: petBreed,
+      location: petLocation
+    };
+  
+    
+    App.registeredPets.push(newPetData);
+  
+    // Save the updated pets array to pets.json
+    $.ajax({
+      type: 'POST',
+      url: '../pets.json',
+      data: JSON.stringify(App.registeredPets),
+      contentType: 'application/json',
+      success: function() {
+        // Show the "Successfully registered" dialog box
+        $('#registerSuccessDialog').modal('show');
+      },
+      error: function(error) {
+        console.error('Error occurred while saving pet data:', error);
+      }
+    });
+    
+  
+    $('#registerPetDialog').modal('hide');
+    App.registerPet();
+  },
+    // Perform your registration logic here using the entered pet details and uploaded photo
+  
+    // Close the dialog
 
   
   initWeb3: async function() {
@@ -132,94 +288,7 @@ web3 = new Web3(App.web3Provider);
   },
 
 
-  registerPet: function() {
-    var petName = $('#petName').val();
-    var petAge = $('#petAge').val();
-    var petBreed = $('#petBreed').val();
-    var petLocation = $('#petLocation').val();
-    var petPhotoInput = $('#petPhoto')[0]; // Get the file input element
-    var petPhoto = petPhotoInput.files[0]; // Get the selected file
   
-    // Create a new FormData object
-    var formData = new FormData();
-    formData.append('name', petName);
-    formData.append('age', petAge);
-    formData.append('breed', petBreed);
-    formData.append('location', petLocation);
-    formData.append('photo', petPhoto);
-    
-    $.ajax({
-      type: 'POST',
-      url: '../images/' + petPhoto.name,
-      data: petPhoto,
-      processData: false,
-      contentType: false,
-      success: function() {
-        console.log('Pet photo uploaded successfully');
-      },
-      error: function(error) {
-        console.error('Error occurred while uploading pet photo:', error);
-      }
-    });
-  
-    var newPet = {
-      name: petName,
-      age: petAge,
-      breed: petBreed,
-      location: petLocation,
-      photo: petPhoto,
-      voteCount: 0
-    };
-  
-    App.registeredPets.push(newPet);
-  
-    // Update the UI to display the newly registered pet
-    var petsRow = $('#petsRow');
-    var petTemplate = $('#petTemplate').html();
-    petTemplate = petTemplate.replace('{{name}}', newPet.name);
-    petTemplate = petTemplate.replace('{{picture}}', newPet.photo);
-    petTemplate = petTemplate.replace('{{breed}}', newPet.breed);
-    petTemplate = petTemplate.replace('{{age}}', newPet.age);
-    petTemplate = petTemplate.replace('{{location}}', newPet.location);
-    petsRow.append(petTemplate);
-  
-    // Close the dialog
-    $('#registerPetDialog').modal('hide');
-    var newPetData = {
-      id: App.registeredPets.length,
-      name: petName,
-      picture: 'images/' + petPhoto.name,
-      age: petAge,
-      breed: petBreed,
-      location: petLocation
-    };
-  
-    
-    App.registeredPets.push(newPetData);
-  
-    // Save the updated pets array to pets.json
-    $.ajax({
-      type: 'POST',
-      url: '../pets.json',
-      data: JSON.stringify(App.registeredPets),
-      contentType: 'application/json',
-      success: function() {
-        // Show the "Successfully registered" dialog box
-        $('#registerSuccessDialog').modal('show');
-      },
-      error: function(error) {
-        console.error('Error occurred while saving pet data:', error);
-      }
-    });
-    
-  
-    $('#registerPetDialog').modal('hide');
-    App.registerPet();
-  },
-    // Perform your registration logic here using the entered pet details and uploaded photo
-  
-    // Close the dialog
-
   markAdopted: function(adopters, account) {
     var adoptionInstance;
   
