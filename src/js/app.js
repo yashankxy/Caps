@@ -38,6 +38,8 @@ function donateEther () {
 }
 
 
+
+
 function adopt(petId) {
   var petInstance;
 
@@ -87,6 +89,55 @@ function populateAdoptionHistoryBox() {
     }
   });
 }
+// Add this to your existing App object
+
+// Function to open the adoption history modal
+function openAdoptionHistoryModal(adoptionHistory) {
+  var modal = $('#adoptionHistoryModal');
+  var adoptionList = $('#adoptionList');
+
+  // Clear previous data
+  adoptionList.empty();
+
+  // Populate the modal with adoption history data
+  adoptionHistory.forEach(function(petId) {
+    var petInfo = App.registeredPets.find(function(pet) {
+      return pet.id === petId;
+    });
+
+    if (petInfo) {
+      var listItem = $('<li>').text(petInfo.name);
+      adoptionList.append(listItem);
+    }
+  });
+
+  // Show the modal
+  modal.css('display', 'block');
+
+  // Close the modal when the close button is clicked
+  modal.find('.close').click(function() {
+    modal.css('display', 'none');
+  });
+
+  // Close the modal if the user clicks outside of it
+  $(window).click(function(event) {
+    if (event.target === modal[0]) {
+      modal.css('display', 'none');
+    }
+  });
+}
+
+// Add an event handler for the search button
+$('#searchButton').click(function() {
+  var userAccount = $('#userAccountInput').val();
+
+  // Retrieve the adoption history for the user
+  var adoptionHistory = getUserAdoptionHistory(userAccount);
+
+  // Display the adoption history in a modal
+  openAdoptionHistoryModal(adoptionHistory);
+});
+
 
 App = {
   web3Provider: null,
