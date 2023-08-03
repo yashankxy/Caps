@@ -412,7 +412,28 @@ web3 = new Web3(App.web3Provider);
         console.log(err.message);
       });
     });
-  }
+  },
+
+  updateCounters: function() {
+    $('#customerCounter').text('Customers Served: ' + App.customersServed);
+    $('#adoptionCounter').text('Pets Adopted: ' + App.petsAdopted);
+  },
+
+  // Function to serve a customer
+  serveCustomer: function() {
+    App.customersServed++;
+    App.updateCounters();
+    // You can add additional logic related to customer service here
+  },
+
+  // Function to handle pet adoption
+  adoptPet: function() {
+    App.petsAdopted++;
+    App.updateCounters();
+    // You can add additional logic related to pet adoption here
+  },
+
+  // ... (other existing methods)
 
 };
 
