@@ -74,15 +74,16 @@
         
         <button id="registerPetButton" class="btn btn-primary">Register Pet</button>
         <button id="donateEtherButton" class="btn btn-primary">Donate</button>
-        
+        <br />
+        <label for="adoption history">Adopting history</label>
+        <input type="text" id="userAccountInput" placeholder="Enter User Account">
+        <button id="searchButton"  class="btn btn-primary">Search</button>
+
         <hr />
         <br />
 
        <!-- Add this section wherever you want to display the adoption history -->
-<div id="adoptionHistoryBox">
-  <h3>Adoption History</h3>
-  <ul id="adoptionList"></ul>
-</div>
+
 
 
       </div>
@@ -192,6 +193,14 @@
   </div>
 </div>
 
+<!-- Modal for displaying adoption history -->
+<div id="adoptionHistoryModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Adoption History</h2>
+    <ul id="adoptionList"></ul>
+  </div>
+</div>
 
   <div id="petTemplate" style="display: none;">
     <div class="panel-body">
