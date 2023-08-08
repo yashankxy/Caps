@@ -173,13 +173,13 @@ App = {
   registerPet: function() {
     console.log('Registering a new pet...');
     var adoptionInstance;
-    var petPhotoInput = $('#petPhoto')[0]; // Get the file input element
-    var petPhoto = petPhotoInput.files[0]; // Get the selected file
+    var petPhotoInput = $('#petPhoto')[0];
+    var petPhoto = petPhotoInput.files[0];
   
     // Fetch the user account
     web3.eth.getAccounts(function(error, accounts) {
       if (error) {
-        console.log('Web3 error ');
+        console.log('Web3 error ', error);
         return;
       }
       var account = accounts[0];
@@ -188,6 +188,15 @@ App = {
       var petAge = $('#petAge').val();
       var petBreed = $('#petBreed').val();
       var petLocation = $('#petLocation').val();
+      var imageUrl = '../images/' + petPhoto.name;
+      
+      var imageUrl;
+      if (petPhoto && petPhoto.name) {
+        imageUrl = '../images/' + petPhoto.name;
+      } else {
+        console.error('petPhoto is undefined or does not have a name property');
+        return;
+      }
   
       // Create a new FormData object
       var formData = new FormData();
@@ -200,8 +209,8 @@ App = {
       // Upload the pet information and photo
       $.ajax({
         type: 'POST',
-        url: '../images/' + petPhoto.name,
-        data: formData, // Use formData here
+        url: imageUrl,
+        data: formData,
         processData: false,
         contentType: false,
         success: function() {
@@ -217,15 +226,14 @@ App = {
       function registerPetOnBlockchain() {
         App.contracts.Adoption.deployed().then(function(instance) {
           adoptionInstance = instance;
-          console.log(petName, petPhoto.name, petAge, petBreed, petLocation);
-          return adoptionInstance.addPet(petName, 'images/' + petPhoto.name, petAge, petBreed, petLocation, { from: account });
+          return adoptionInstance.addPet(petName, imageUrl, petAge, petBreed, petLocation, { from: account });
         }).then(function() {
           console.log('Pet registered on the blockchain');
           // Update the UI to display the newly registered pet
           var petsRow = $('#petsRow');
           var petTemplate = $('#petTemplate').html();
           petTemplate = petTemplate.replace('{{name}}', petName);
-          petTemplate = petTemplate.replace('{{picture}}', 'images/' + petPhoto.name);
+          petTemplate = petTemplate.replace('{{picture}}', imageUrl);
           petTemplate = petTemplate.replace('{{breed}}', petBreed);
           petTemplate = petTemplate.replace('{{age}}', petAge);
           petTemplate = petTemplate.replace('{{location}}', petLocation);
@@ -249,6 +257,7 @@ App = {
       }
     });
   },
+  
   
     // Perform your registration logic here using the entered pet details and uploaded photo
   
